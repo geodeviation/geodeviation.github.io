@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+	<title>Geodeviation</title>	
+	<style>
+		.position_table_caption { text-align: left; }
+.position_table {
+  border: 1px solid;
+  border-collapse: collapse;
+  margin-top: 2em;
+}
+
+td,
+th {
+  border: 1px solid #999;
+  padding: 0.5rem;
+  text-align: left;
+}
+tr:nth-child(even) {
+  background-color: #ddd;
+}
+
+.no-record td {
+  text-align: center;
+}
+	</style>
+</head>
+<body>
+<h1>Geodeviation</h1>
+
+<table class="position_table">
+  <caption class="position_table_caption">Current position</caption>
+  <thead>
+    <tr>
+      <th>Time</th>
+      <th>Longitude</th>
+      <th>Latitude</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="js_current_time"></td>
+      <td class="js_current_lat"></td>
+      <td class="js_current_lon"></td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="js_deviation_table position_table">
+  <caption class="position_table_caption">Recorded deviant positions</caption>
+  <thead>
+    <tr>
+      <th>Time</th>
+      <th>Longitude</th>
+      <th>Latitude</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="no-record js-no-record">
+      <td colspan="3">No deviations recorded so far.</td>
+    </tr>
+  </tbody>
+</table>
+
+<template class="js_deviation_template">
+  <tr>
+    <td class="js_time">Time</td>
+    <td class="js_latitude">Lat.</td>
+    <td class="js_longitude">Long.</td>
+  </tr>
+</template>
+
+<button class="js_copy_report_btn" disabled>Copy to clipboard</button>
+</body>
+<script src="scripts.js"></script>
+</html>
