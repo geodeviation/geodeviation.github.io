@@ -77,6 +77,11 @@ const geoSuccess = nextPosition => {
       )
     ) {
       registerDeviation(nextPosition, currentPosition);
+    } else {
+      const extraString = 
+        Number(currentLatitudeInInt) + "===" + Number(nextLatitudeInInt) +"\n"
+        +Number(currentLongitudeInInt) + "===" + Number(nextLongitudeInInt);
+      printDataOnPage(nextPosition, ".js_no_deviation_table", extraString);
     }
   }
 
@@ -107,9 +112,17 @@ const printDataOnPage = (nextPosObject, tableSelector, extraString) => {
   let clone;
 
   deviation_template.content.querySelector(".js_time").innerHTML = nextTime;
-  deviation_template.content.querySelector(
-    ".js_longitude"
-  ).innerHTML = parseFloat(nextPosObject.coords.longitude).toFixed(2);
+
+  if(extraString) {
+    deviation_template.content.querySelector(
+      ".js_longitude"
+    ).innerHTML = parseFloat(nextPosObject.coords.longitude).toFixed(2) + " - " + extraString;
+  } else {  
+    deviation_template.content.querySelector(
+      ".js_longitude"
+    ).innerHTML = parseFloat(nextPosObject.coords.longitude).toFixed(2);
+  }
+
   deviation_template.content.querySelector(
     ".js_latitude"
   ).innerHTML = parseFloat(nextPosObject.coords.latitude).toFixed(2);
