@@ -88,18 +88,22 @@ const geoSuccess = nextPosition => {
 };
 
 const registerDeviation = (nextPosObject, prevPosObject) => {
-  const prevTime = printTime(prevPosObject.timestamp);
-  const nextTime = printTime(nextPosObject.timestamp);
-
-  if (document.querySelector(".js-no-record")) {
-    removeNoneNotification();
-  }
+  printDataOnPage(nextPosObject, ".js_deviation_table");
 
   positionObject += "Position:\n";
   positionObject += printObject(nextPosObject);
+};
+
+const printDataOnPage = (nextPosObject, tableSelector, extraString) => {
+  const nextTime = printTime(nextPosObject.timestamp),
+    noneNotificationSelector = tableSelector + " .js-no-record";
+
+  if (document.querySelector(noneNotificationSelector)) {
+    removeNoneNotification(tableSelector, noneNotificationSelector);
+  }
 
   const deviation_template = document.querySelector(".js_deviation_template"),
-    append_deviation_to = document.querySelector(".js_deviation_table");
+    append_deviation_to = document.querySelector(tableSelector);
   let clone;
 
   deviation_template.content.querySelector(".js_time").innerHTML = nextTime;
