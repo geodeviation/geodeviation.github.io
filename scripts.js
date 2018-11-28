@@ -114,7 +114,6 @@ const registerDeviation = (nextPosObject, prevPosObject) => {
   append_deviation_to.appendChild(clone);
 };
 
-function fallbackCopyTextToClipboard(text) {
 const removeNoneNotification = (tableSelector, noneNotificationSelector) => {
   const deviation_table = document.querySelector(tableSelector + " tbody"),
     notification = document.querySelector(noneNotificationSelector);
@@ -123,6 +122,8 @@ const removeNoneNotification = (tableSelector, noneNotificationSelector) => {
   copyReportBtn.disabled = false;
 };
 
+
+const fallbackCopyTextToClipboard = (text) => {
   var textArea = document.createElement("textarea");
   textArea.value = text;
   document.body.appendChild(textArea);
@@ -138,14 +139,15 @@ const removeNoneNotification = (tableSelector, noneNotificationSelector) => {
   }
 
   document.body.removeChild(textArea);
-}
-function copyTextToClipboard(text) {
+};
+
+const copyTextToClipboard = (text) => {
   if (!navigator.clipboard) {
     fallbackCopyTextToClipboard(text);
     return;
   }
   navigator.clipboard.writeText(text);
-}
+};
 
 const printObject = (obj, level = 1) => {
   let printedObject = "";
