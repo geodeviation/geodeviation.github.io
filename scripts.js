@@ -87,42 +87,6 @@ const geoSuccess = nextPosition => {
   currentPosition = nextPosition;
 };
 
-const geoError = error => {
-  const errorCodes = [
-      "unknown error",
-      "permission denied (you didn't enable positioning)",
-      "position unavailable",
-      "timed out"
-    ],
-    nil = "-";
-  latitudeEl.innerHTML =
-    "Error occurred. Error code: " + error.code + ": " + errorCodes[error.code];
-  longitudeEl.innerHTML = nil;
-  timeEl.innerHTML = nil;
-};
-
-const removeNoneNotification = () => {
-  const deviation_table = document.querySelector(".js_deviation_table tbody"),
-    notification = document.querySelector(".js-no-record");
-  deviation_table.removeChild(notification);
-  const copyReportBtn = document.querySelector(".js_copy_report_btn");
-  copyReportBtn.disabled = false;
-};
-
-const printObject = (obj, level = 1) => {
-  let printedObject = "";
-  for (const property in obj) {
-    if (typeof obj[property] === "object") {
-      printedObject += "\t".repeat(level) + property + ": \n";
-      printedObject += printObject(obj[property], level + 1);
-    } else {
-      printedObject +=
-        "\t".repeat(level) + property + ": " + obj[property] + ";\n";
-    }
-  }
-  return printedObject;
-};
-
 const registerDeviation = (nextPosObject, prevPosObject) => {
   const prevTime = printTime(prevPosObject.timestamp);
   const nextTime = printTime(nextPosObject.timestamp);
@@ -151,6 +115,14 @@ const registerDeviation = (nextPosObject, prevPosObject) => {
 };
 
 function fallbackCopyTextToClipboard(text) {
+const removeNoneNotification = (tableSelector, noneNotificationSelector) => {
+  const deviation_table = document.querySelector(tableSelector + " tbody"),
+    notification = document.querySelector(noneNotificationSelector);
+  deviation_table.removeChild(notification);
+  const copyReportBtn = document.querySelector(".js_copy_report_btn");
+  copyReportBtn.disabled = false;
+};
+
   var textArea = document.createElement("textarea");
   textArea.value = text;
   document.body.appendChild(textArea);
@@ -174,3 +146,31 @@ function copyTextToClipboard(text) {
   }
   navigator.clipboard.writeText(text);
 }
+
+const printObject = (obj, level = 1) => {
+  let printedObject = "";
+  for (const property in obj) {
+    if (typeof obj[property] === "object") {
+      printedObject += "\t".repeat(level) + property + ": \n";
+      printedObject += printObject(obj[property], level + 1);
+    } else {
+      printedObject +=
+        "\t".repeat(level) + property + ": " + obj[property] + ";\n";
+    }
+  }
+  return printedObject;
+};
+
+const geoError = error => {
+  const errorCodes = [
+      "unknown error",
+      "permission denied (you didn't enable positioning)",
+      "position unavailable",
+      "timed out"
+    ],
+    nil = "-";
+  latitudeEl.innerHTML =
+    "Error occurred. Error code: " + error.code + ": " + errorCodes[error.code];
+  longitudeEl.innerHTML = nil;
+  timeEl.innerHTML = nil;
+};
