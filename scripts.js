@@ -50,37 +50,35 @@ const geoSuccess = nextPosition => {
     nextLongitude = nextPosition.coords.longitude,
     nextTime = printTime(nextPosition.timestamp);
 
-  const currentLatitudeInInt = parseInt(currentLatitude),
-    currentLongitudeInInt = parseInt(currentLongitude),
-    nextLatitudeInInt = parseInt(nextLatitude),
-    nextLongitudeInInt = parseInt(nextLongitude),
+  const currentLatitudeAsFloat = parseFloat(currentLatitude).toFixed(2),
+    currentLongitudeAsFloat = parseFloat(currentLongitude).toFixed(2),
     nextLatitudeAsFloat = parseFloat(nextLatitude).toFixed(2),
     nextLongitudeAsFloat = parseFloat(nextLongitude).toFixed(2);
 
   if (
-    !nextLatitudeInInt ||
-    isNaN(nextLatitudeInInt) ||
-    (!nextLongitudeInInt || isNaN(nextLongitudeInInt))
+    !nextLatitudeAsFloat ||
+    isNaN(nextLatitudeAsFloat) ||
+    (!nextLongitudeAsFloat || isNaN(nextLongitudeAsFloat))
   ) {
     return;
   }
 
   if (
-    currentLatitudeInInt &&
-    !isNaN(currentLatitudeInInt) &&
-    (currentLongitudeInInt && !isNaN(currentLongitudeInInt))
+    currentLatitudeAsFloat &&
+    !isNaN(currentLatitudeAsFloat) &&
+    (currentLongitudeAsFloat && !isNaN(currentLongitudeAsFloat))
   ) {
     if (
       !(
-        Number(currentLatitudeInInt) === Number(nextLatitudeInInt) &&
-        Number(currentLongitudeInInt) === Number(nextLongitudeInInt)
+        currentLatitudeAsFloat === nextLatitudeAsFloat &&
+        currentLongitudeAsFloat === nextLongitudeAsFloat
       )
     ) {
       registerDeviation(nextPosition, currentPosition);
     } else {
       const extraString = 
-        Number(currentLatitudeInInt) + "===" + Number(nextLatitudeInInt) +"\n"
-        +Number(currentLongitudeInInt) + "===" + Number(nextLongitudeInInt);
+        currentLatitudeAsFloat + "===" + nextLatitudeAsFloat +"\n"
+        +currentLongitudeAsFloat + "===" + nextLongitudeAsFloat;
       printDataOnPage(nextPosition, ".js_no_deviation_table", extraString);
     }
   }
@@ -113,11 +111,15 @@ const printDataOnPage = (nextPosObject, tableSelector, extraString) => {
 
   deviation_template.content.querySelector(".js_time").innerHTML = nextTime;
 
-  if(extraString) {
     deviation_template.content.querySelector(
       ".js_longitude"
+    ).innerHTML = parseFloat(nextPosObject.coords.longitude).toFixed(2);
+
+  if(extraString) {
+        deviation_template.content.querySelector(
+      ".js_longitude"
     ).innerHTML = parseFloat(nextPosObject.coords.longitude).toFixed(2) + " - " + extraString;
-  } else {  
+  } else {
     deviation_template.content.querySelector(
       ".js_longitude"
     ).innerHTML = parseFloat(nextPosObject.coords.longitude).toFixed(2);
