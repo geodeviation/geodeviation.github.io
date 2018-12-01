@@ -5,12 +5,16 @@ if (!navigator.geolocation) {
 }
 
 let currentPosition,
-  nextPosition,
-  positionObject = "";
+    nextPosition,
+    positionObject = "",
+    errorClassName = "error";
 
 const latitudeEl = document.querySelector(".js_current_lat"),
-  longitudeEl = document.querySelector(".js_current_lon"),
-  timeEl = document.querySelector(".js_current_time");
+    longitudeEl = document.querySelector(".js_current_lon"),
+    timeEl = document.querySelector(".js_current_time"),
+    devLatitudeCN = ".js_latitude",
+    devLongitudeCN = ".js_longitude",
+    devTimeCN = ".js_time";
 
 const watchId = navigator.geolocation.watchPosition(
     position => {
@@ -40,12 +44,28 @@ copyReportBtn.addEventListener("click", function(event) {
 });
 
 const geoSuccess = nextPosition => {
-  if (!currentPosition) {
+    if (!currentPosition) {
+        currentPosition = nextPosition;
+    }
+
+    const currentLatitude = currentPosition.coords.latitude,
+        currentLongitude = currentPosition.coords.longitude,
+        nextLatitude = nextPosition.coords.latitude,
+        nextLongitude = nextPosition.coords.longitude,
+        currentTime = Date.now(),
+        nextTimeStamp = nextPosition.timestamp,
+        nextTime = printTime(nextTimeStamp),
+        errors = [];
+
 
     const currentLatitudeAsFloat = parseFloat(currentLatitude).toFixed(2),
         currentLongitudeAsFloat = parseFloat(currentLongitude).toFixed(2),
         nextLatitudeAsFloat = parseFloat(nextLatitude).toFixed(2),
         nextLongitudeAsFloat = parseFloat(nextLongitude).toFixed(2);
+
+    const latitudeVarians = 0.01,
+        longitudeVarians = 0.04,
+        timeVarians = 5000;
 
     if (
         !nextLatitudeAsFloat ||
@@ -60,21 +80,43 @@ const geoSuccess = nextPosition => {
         !isNaN(currentLatitudeAsFloat) &&
         (currentLongitudeAsFloat && !isNaN(currentLongitudeAsFloat))
     ) {
-    currentPosition = nextPosition;
-  }
+        const latitudeDev = noDeviation(currentLatitudeAsFloat, nextLatitudeAsFloat, latitudeVarians, devLatitudeCN);
+        if (typeof latitudeDev !== 'undefined') {
+            errors.push(latitudeDev);
+        }
+        const longitudeDev = noDeviation(currentLongitudeAsFloat, nextLongitudeAsFloat, longitudeVarians, devLongitudeCN);
+        if (typeof longitudeDev !== 'undefined') {
+            errors.push(longitudeDev);
+        }
+        const timeDev = noDeviation(currentTime, nextTimeStamp, timeVarians, devTimeCN);
+        if (typeof timeDev !== 'undefined') {
+            errors.push(timeDev);
+        }
+        if (errors.length > 0) {
+            registerDeviation(nextPosition, currentPosition, errors);
+        } else {
+            const extraString =
+                currentLatitudeAsFloat + "===" + nextLatitudeAsFloat + "\n" +
+                currentLongitudeAsFloat + "===" + nextLongitudeAsFloat;
+            printDataOnPage(nextPosition, ".js_no_deviation_table", extraString);
+        }
+    }
 
-  const currentLatitude = currentPosition.coords.latitude,
-    currentLongitude = currentPosition.coords.longitude,
-    nextLatitude = nextPosition.coords.latitude,
-    nextLongitude = nextPosition.coords.longitude,
-    nextTime = printTime(nextPosition.timestamp);
-    if (
-      !(
-        currentLatitudeAsFloat === nextLatitudeAsFloat &&
-        currentLongitudeAsFloat === nextLongitudeAsFloat
-      )
-    ) {
-      registerDeviation(nextPosition, currentPosition);
+    latitudeEl.innerHTML = nextLatitudeAsFloat;
+    longitudeEl.innerHTML = nextLongitudeAsFloat;
+    timeEl.innerHTML = nextTime;
+
+    currentPosition = nextPosition;
+};
+
+const noDeviation = (currentValue, nextValue, varians, el) => {
+    const isNotLower = (currentValue - varians) < nextValue;
+    const isNotHigher = (currentValue + varians) > nextValue;
+    const noDeviation = isNotLower && isNotHigher;
+    if (!noDeviation) {
+        return el;
+    }
+};
 
 const registerDeviation = (nextPosObject, prevPosObject, errors) => {
     printDataOnPage(nextPosObject, ".js_deviation_table", errors);
@@ -83,55 +125,50 @@ const registerDeviation = (nextPosObject, prevPosObject, errors) => {
     positionObject += printObject(nextPosObject);
 };
 
-    } else {
-      const extraString = 
-        currentLatitudeAsFloat + "===" + nextLatitudeAsFloat +"\n"
-        +currentLongitudeAsFloat + "===" + nextLongitudeAsFloat;
-      printDataOnPage(nextPosition, ".js_no_deviation_table", extraString);
+const printDataOnPage = (nextPosObject, tableSelector, errors) => {
+    const nextTime = printTime(nextPosObject.timestamp),
+        noneNotificationSelector = tableSelector + " .js-no-record";
+
+    let extraString,
+        clone;
+
+    if (!Array.isArray(errors)) {
+        extraString = errors;
+        errors = [];
     }
-  }
 
-  latitudeEl.innerHTML = nextLatitudeAsFloat;
-  longitudeEl.innerHTML = nextLongitudeAsFloat;
-  timeEl.innerHTML = nextTime;
+    if (document.querySelector(noneNotificationSelector)) {
+        removeNoneNotification(tableSelector, noneNotificationSelector);
+    }
 
-  currentPosition = nextPosition;
-};
+    const deviation_template = document.querySelector(".js_deviation_template"),
+        append_deviation_to = document.querySelector(tableSelector);
 
-const printDataOnPage = (nextPosObject, tableSelector, extraString) => {
-  const nextTime = printTime(nextPosObject.timestamp),
-    noneNotificationSelector = tableSelector + " .js-no-record";
+    const devTimeEl = deviation_template.content.querySelector(devTimeCN),
+        devLongitudeEl = deviation_template.content.querySelector(devLongitudeCN),
+        devLatitudeEl = deviation_template.content.querySelector(devLatitudeCN);
 
-  if (document.querySelector(noneNotificationSelector)) {
-    removeNoneNotification(tableSelector, noneNotificationSelector);
-  }
+    devTimeEl.innerHTML = nextTime;
+    if (errors.includes(devTimeCN)) {
+        devTimeEl.classList.add(errorClassName);
+    }
 
-  const deviation_template = document.querySelector(".js_deviation_template"),
-    append_deviation_to = document.querySelector(tableSelector);
-  let clone;
+    devLatitudeEl.innerHTML = parseFloat(nextPosObject.coords.latitude).toFixed(2);
+    if (errors.includes(devLatitudeCN)) {
+        devLatitudeEl.classList.add(errorClassName);
+    }
 
-  deviation_template.content.querySelector(".js_time").innerHTML = nextTime;
+    if (extraString) {
+        devLongitudeEl.innerHTML = parseFloat(nextPosObject.coords.longitude).toFixed(2) + " - " + extraString;
+    } else {
+        devLongitudeEl.innerHTML = parseFloat(nextPosObject.coords.longitude).toFixed(2);
+    }
+    if (errors.includes(devLongitudeCN)) {
+        devLongitudeEl.classList.add(errorClassName);
+    }
 
-    deviation_template.content.querySelector(
-      ".js_longitude"
-    ).innerHTML = parseFloat(nextPosObject.coords.longitude).toFixed(2);
-
-  if(extraString) {
-        deviation_template.content.querySelector(
-      ".js_longitude"
-    ).innerHTML = parseFloat(nextPosObject.coords.longitude).toFixed(2) + " - " + extraString;
-  } else {
-    deviation_template.content.querySelector(
-      ".js_longitude"
-    ).innerHTML = parseFloat(nextPosObject.coords.longitude).toFixed(2);
-  }
-
-  deviation_template.content.querySelector(
-    ".js_latitude"
-  ).innerHTML = parseFloat(nextPosObject.coords.latitude).toFixed(2);
-
-  clone = document.importNode(deviation_template.content, true);
-  append_deviation_to.appendChild(clone);
+    clone = document.importNode(deviation_template.content, true);
+    append_deviation_to.appendChild(clone);
 };
 
 const removeNoneNotification = (tableSelector, noneNotificationSelector) => {
