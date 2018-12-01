@@ -1,7 +1,7 @@
 "use strict";
 
 if (!navigator.geolocation) {
-  console.log("Geolocation is not supported for this Browser/OS.");
+    console.log("Geolocation is not supported for this Browser/OS.");
 }
 
 let currentPosition,
@@ -13,34 +13,53 @@ const latitudeEl = document.querySelector(".js_current_lat"),
   timeEl = document.querySelector(".js_current_time");
 
 const watchId = navigator.geolocation.watchPosition(
-  position => {
-    geoSuccess(position);
-  },
-  error => {
-    geoError(error);
-  }
+    position => {
+        geoSuccess(position);
+    },
+    error => {
+        geoError(error);
+    }
 );
 
 const printTime = timestamp => {
-  const options = {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-    second: "numeric"
-  };
+    const options = {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric"
+    };
 
-  return new Date(timestamp).toLocaleString("nb-NO", options);
+    return new Date(timestamp).toLocaleString("nb-NO", options);
 };
 
 const copyReportBtn = document.querySelector(".js_copy_report_btn");
 
 copyReportBtn.addEventListener("click", function(event) {
-  copyTextToClipboard(positionObject);
+    copyTextToClipboard(positionObject);
 });
 
 const geoSuccess = nextPosition => {
   if (!currentPosition) {
+
+    const currentLatitudeAsFloat = parseFloat(currentLatitude).toFixed(2),
+        currentLongitudeAsFloat = parseFloat(currentLongitude).toFixed(2),
+        nextLatitudeAsFloat = parseFloat(nextLatitude).toFixed(2),
+        nextLongitudeAsFloat = parseFloat(nextLongitude).toFixed(2);
+
+    if (
+        !nextLatitudeAsFloat ||
+        isNaN(nextLatitudeAsFloat) ||
+        (!nextLongitudeAsFloat || isNaN(nextLongitudeAsFloat))
+    ) {
+        return;
+    }
+
+    if (
+        currentLatitudeAsFloat &&
+        !isNaN(currentLatitudeAsFloat) &&
+        (currentLongitudeAsFloat && !isNaN(currentLongitudeAsFloat))
+    ) {
     currentPosition = nextPosition;
   }
 
@@ -49,25 +68,6 @@ const geoSuccess = nextPosition => {
     nextLatitude = nextPosition.coords.latitude,
     nextLongitude = nextPosition.coords.longitude,
     nextTime = printTime(nextPosition.timestamp);
-
-  const currentLatitudeAsFloat = parseFloat(currentLatitude).toFixed(2),
-    currentLongitudeAsFloat = parseFloat(currentLongitude).toFixed(2),
-    nextLatitudeAsFloat = parseFloat(nextLatitude).toFixed(2),
-    nextLongitudeAsFloat = parseFloat(nextLongitude).toFixed(2);
-
-  if (
-    !nextLatitudeAsFloat ||
-    isNaN(nextLatitudeAsFloat) ||
-    (!nextLongitudeAsFloat || isNaN(nextLongitudeAsFloat))
-  ) {
-    return;
-  }
-
-  if (
-    currentLatitudeAsFloat &&
-    !isNaN(currentLatitudeAsFloat) &&
-    (currentLongitudeAsFloat && !isNaN(currentLongitudeAsFloat))
-  ) {
     if (
       !(
         currentLatitudeAsFloat === nextLatitudeAsFloat &&
@@ -75,6 +75,14 @@ const geoSuccess = nextPosition => {
       )
     ) {
       registerDeviation(nextPosition, currentPosition);
+
+const registerDeviation = (nextPosObject, prevPosObject, errors) => {
+    printDataOnPage(nextPosObject, ".js_deviation_table", errors);
+
+    positionObject += "Position:\n";
+    positionObject += printObject(nextPosObject);
+};
+
     } else {
       const extraString = 
         currentLatitudeAsFloat + "===" + nextLatitudeAsFloat +"\n"
@@ -88,13 +96,6 @@ const geoSuccess = nextPosition => {
   timeEl.innerHTML = nextTime;
 
   currentPosition = nextPosition;
-};
-
-const registerDeviation = (nextPosObject, prevPosObject) => {
-  printDataOnPage(nextPosObject, ".js_deviation_table");
-
-  positionObject += "Position:\n";
-  positionObject += printObject(nextPosObject);
 };
 
 const printDataOnPage = (nextPosObject, tableSelector, extraString) => {
@@ -134,64 +135,64 @@ const printDataOnPage = (nextPosObject, tableSelector, extraString) => {
 };
 
 const removeNoneNotification = (tableSelector, noneNotificationSelector) => {
-  const deviation_table = document.querySelector(tableSelector + " tbody"),
-    notification = document.querySelector(noneNotificationSelector);
-  deviation_table.removeChild(notification);
-  const copyReportBtn = document.querySelector(".js_copy_report_btn");
-  copyReportBtn.disabled = false;
+    const deviation_table = document.querySelector(tableSelector + " tbody"),
+        notification = document.querySelector(noneNotificationSelector);
+    deviation_table.removeChild(notification);
+    const copyReportBtn = document.querySelector(".js_copy_report_btn");
+    copyReportBtn.disabled = false;
 };
 
 
 const fallbackCopyTextToClipboard = (text) => {
-  var textArea = document.createElement("textarea");
-  textArea.value = text;
-  document.body.appendChild(textArea);
-  textArea.focus();
-  textArea.select();
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
 
-  try {
-    var successful = document.execCommand("copy");
-    var msg = successful ? "successful" : "unsuccessful";
-    console.log("Fallback: Copying text command was " + msg);
-  } catch (err) {
-    console.error("Fallback: Oops, unable to copy", err);
-  }
+    try {
+        var successful = document.execCommand("copy");
+        var msg = successful ? "successful" : "unsuccessful";
+        console.log("Fallback: Copying text command was " + msg);
+    } catch (err) {
+        console.error("Fallback: Oops, unable to copy", err);
+    }
 
-  document.body.removeChild(textArea);
+    document.body.removeChild(textArea);
 };
 
 const copyTextToClipboard = (text) => {
-  if (!navigator.clipboard) {
-    fallbackCopyTextToClipboard(text);
-    return;
-  }
-  navigator.clipboard.writeText(text);
+    if (!navigator.clipboard) {
+        fallbackCopyTextToClipboard(text);
+        return;
+    }
+    navigator.clipboard.writeText(text);
 };
 
 const printObject = (obj, level = 1) => {
-  let printedObject = "";
-  for (const property in obj) {
-    if (typeof obj[property] === "object") {
-      printedObject += "\t".repeat(level) + property + ": \n";
-      printedObject += printObject(obj[property], level + 1);
-    } else {
-      printedObject +=
-        "\t".repeat(level) + property + ": " + obj[property] + ";\n";
+    let printedObject = "";
+    for (const property in obj) {
+        if (typeof obj[property] === "object") {
+            printedObject += "\t".repeat(level) + property + ": \n";
+            printedObject += printObject(obj[property], level + 1);
+        } else {
+            printedObject +=
+                "\t".repeat(level) + property + ": " + obj[property] + ";\n";
+        }
     }
-  }
-  return printedObject;
+    return printedObject;
 };
 
 const geoError = error => {
-  const errorCodes = [
-      "unknown error",
-      "permission denied (you didn't enable positioning)",
-      "position unavailable",
-      "timed out"
-    ],
-    nil = "-";
-  latitudeEl.innerHTML =
-    "Error occurred. Error code: " + error.code + ": " + errorCodes[error.code];
-  longitudeEl.innerHTML = nil;
-  timeEl.innerHTML = nil;
+    const errorCodes = [
+            "unknown error",
+            "permission denied (you didn't enable positioning)",
+            "position unavailable",
+            "timed out"
+        ],
+        nil = "-";
+    latitudeEl.innerHTML =
+        "Error occurred. Error code: " + error.code + ": " + errorCodes[error.code];
+    longitudeEl.innerHTML = nil;
+    timeEl.innerHTML = nil;
 };
