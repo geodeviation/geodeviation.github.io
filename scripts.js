@@ -65,7 +65,7 @@ const geoSuccess = nextPosition => {
 
     const latitudeVarians = 0.01,
         longitudeVarians = 0.04,
-        timeVarians = 5000;
+        timeVarians = 60000;
 
     if (
         !nextLatitudeAsFloat ||
